@@ -15,8 +15,12 @@ public class DataInitializer implements CommandLineRunner {
     
     @Override
     public void run(String... args) {
-        log.info("Data Initializing...");
-        var snapshot = rateService.createMockSnapshot();
-        log.info("Initialized data: {}", snapshot.getRates().size());
+        log.info("Inicjalizacja danych - pobieranie z NBP...");
+        try {
+            var snapshot = rateService.fetchRatesFromNbp();
+            log.info("Dane zainicjalizowane: {} kursów z NBP", snapshot.getRates().size());
+        } catch (Exception e) {
+            log.error("Błąd podczas inicjalizacji: {}", e.getMessage());
+        }
     }
 }
