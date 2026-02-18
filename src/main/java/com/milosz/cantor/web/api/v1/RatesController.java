@@ -4,7 +4,6 @@ import com.milosz.cantor.domain.rate.CurrencyCode;
 import com.milosz.cantor.domain.rate.RateService;
 import com.milosz.cantor.domain.rate.RateSnapshot;
 import com.milosz.cantor.web.api.dto.LatestRatesResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,10 +13,13 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/rates")
-@RequiredArgsConstructor
 public class RatesController {
 
     private final RateService rateService;
+
+    public RatesController(RateService rateService) {
+        this.rateService = rateService;
+    }
 
     @GetMapping("/latest")
     public ResponseEntity<LatestRatesResponse> getLatestRates(

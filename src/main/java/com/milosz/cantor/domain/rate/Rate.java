@@ -16,6 +16,7 @@ public class Rate {
     @JoinColumn(name = "snapshot_id", nullable = false)
     private RateSnapshot snapshot;
     
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CurrencyCode currency;
     

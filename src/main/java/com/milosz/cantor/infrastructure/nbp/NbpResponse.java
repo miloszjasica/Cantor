@@ -1,14 +1,26 @@
 package com.milosz.cantor.infrastructure.nbp;
 
-import lombok.Builder;
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 
-@Data
-@Builder
+import com.milosz.cantor.domain.rate.CurrencyCode;
+
 public class NbpResponse {
     private LocalDate effectiveDate;
-    private Map<String, BigDecimal> rates;
+    private Map<CurrencyCode, BigDecimal> rates;
+
+
+    public NbpResponse(LocalDate effectiveDate, Map<CurrencyCode, BigDecimal> rates) {
+        this.effectiveDate = effectiveDate;
+        this.rates = rates;
+    }
+    
+    public LocalDate getEffectiveDate() {
+        return effectiveDate;
+    }
+
+    public Map<CurrencyCode, BigDecimal> getRates() {
+        return rates;
+    }
 }

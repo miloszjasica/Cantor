@@ -31,7 +31,7 @@ public class RateSnapshot {
     @OneToMany(
             mappedBy = "snapshot",
             cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY,
+            fetch = FetchType.EAGER,
             orphanRemoval = true
     )
     private List<Rate> rates = new ArrayList<>();

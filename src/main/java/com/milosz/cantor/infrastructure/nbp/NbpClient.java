@@ -1,17 +1,21 @@
 package com.milosz.cantor.infrastructure.nbp;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import com.milosz.cantor.domain.rate.CurrencyCode;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-@Slf4j
 public class NbpClient {
-    
+    private static final Logger LOGGER = LoggerFactory.getLogger(NbpClient.class);
+
     private final RestTemplate restTemplate;
     
     public NbpClient() {
@@ -21,54 +25,54 @@ public class NbpClient {
     public NbpResponse fetchTodayRates() {
         String url = "http://api.nbp.pl/api/exchangerates/tables/A/?format=json";
         
-        try {
-            log.info("Fetching exchange rates from NBP...");
-            log.info("URL: {}", url);
-            
+        try {        
             NbpTable[] response = restTemplate.getForObject(url, NbpTable[].class);
-            log.info("Response from NBP: {}", response != null ? "received" : "null");
             
             if (response != null && response.length > 0) {
-                log.info("Array: {}, data: {}", response[0].getNo(), response[0].getEffectiveDate());
-                log.info("Rates count: {}", response[0].getRates().size());
+                LOGGER.info("Array: {}, data: {}", response[0].getNo(), response[0].getEffectiveDate());
+                LOGGER.info("Rates count: {}", response[0].getRates().size());
                 
                 response[0].getRates().stream().limit(3).forEach(rate -> 
-                    log.info("{}: {}", rate.getCode(), rate.getMid())
+                    LOGGER.info("{}: {}", rate.getCode(), rate.getMid())
                 );
                 
                 return mapToResponse(response[0]);
             }
         } catch (Exception e) {
-            log.error("Fetching error: {}", e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("Fetching error: {}", e.getMessage());
+            LOGGER.error("Fetching error: ", e);
         }
         
-        log.warn("Mocked data used due to fetch failure");
+        LOGGER.warn("Mocked data used due to fetch failure");
         return getMockRates();
     }
     
     private NbpResponse mapToResponse(NbpTable table) {
-        Map<String, BigDecimal> rates = table.getRates().stream()
+        Map<CurrencyCode, BigDecimal> rates = table.getRates().stream()
             .collect(Collectors.toMap(
-                NbpRate::getCode,
+                rate -> CurrencyCode.valueOf(rate.getCode().toUpperCase()),
                 NbpRate::getMid
             ));
-        
-        return NbpResponse.builder()
-            .effectiveDate(LocalDate.parse(table.getEffectiveDate()))
-            .rates(rates)
-            .build();
+
+        return new NbpResponse(
+            LocalDate.parse(table.getEffectiveDate()),
+            rates
+        );
     }
-    
+
     private NbpResponse getMockRates() {
-        return NbpResponse.builder()
-            .effectiveDate(LocalDate.now())
-            .rates(Map.of(
-                "USD", new BigDecimal("3.98"),
-                "EUR", new BigDecimal("4.32"),
-                "GBP", new BigDecimal("5.12"),
-                "CHF", new BigDecimal("4.56")
-            ))
-            .build();
+        Map<CurrencyCode, BigDecimal> mockRates = Map.of(
+            CurrencyCode.USD, new BigDecimal("3.98"),
+            CurrencyCode.EUR, new BigDecimal("4.32"),
+            CurrencyCode.GBP, new BigDecimal("5.12"),
+            CurrencyCode.CHF, new BigDecimal("4.56")
+        );
+
+        return new NbpResponse(
+            LocalDate.now(),
+            mockRates
+        );
     }
+
+
 }

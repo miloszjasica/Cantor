@@ -2,25 +2,30 @@ package com.milosz.cantor.domain.rate;
 
 import com.milosz.cantor.infrastructure.nbp.NbpClient;
 import com.milosz.cantor.infrastructure.nbp.NbpResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class RateService {
-    
+    private static final Logger LOGGER = LoggerFactory.getLogger(RateService.class);
+
     private final RateSnapshotRepository snapshotRepository;
     private final NbpClient nbpClient;
+
+    public RateService(RateSnapshotRepository snapshotRepository, NbpClient nbpClient) {
+        this.snapshotRepository = snapshotRepository;
+        this.nbpClient = nbpClient;
+    }
     
     @Transactional
     public RateSnapshot fetchRatesFromNbp() {
         if (snapshotRepository.existsByEffectiveDate(LocalDate.now())) {
-            log.info("Today's rates already exist in the database, fetching from there...");
+            LOGGER.info("Today's rates already exist in the database, fetching from there...");
             return snapshotRepository.findFirstByOrderByEffectiveDateDesc().get();
         }
 
@@ -34,19 +39,18 @@ public class RateService {
         );
         
         nbpResponse.getRates().forEach((currency, value) -> {
-
             Rate rate = new Rate(
-                CurrencyCode.valueOf(currency),
+                currency,
                 value,
                 snapshot
             );
-
             snapshot.addRate(rate);
         });
 
+
         
         RateSnapshot saved = snapshotRepository.save(snapshot);
-        log.info("Saved snapshot with {} rates", saved.getRates().size());
+        LOGGER.info("Saved snapshot with {} rates", saved.getRates().size());
         
         return saved;
     }
