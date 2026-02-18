@@ -28,22 +28,24 @@ public class RateService {
 
         NbpResponse nbpResponse = nbpClient.fetchTodayRates();
 
-        RateSnapshot snapshot = RateSnapshot.builder()
-            .baseCurrency("PLN")
-            .source("NBP")
-            .fetchedAt(Instant.now())
-            .effectiveDate(nbpResponse.getEffectiveDate())
-            .build();
+        RateSnapshot snapshot = new RateSnapshot(
+            CurrencyCode.PLN,
+            "NBP",
+            Instant.now(),
+            LocalDate.now()
+        );
         
-        List<Rate> rates = nbpResponse.getRates().entrySet().stream()
-            .map(entry -> Rate.builder()
-                .currency(entry.getKey())
-                .rate(entry.getValue())
-                .snapshot(snapshot)
-                .build())
-            .collect(Collectors.toList());
-        
-        snapshot.setRates(rates);
+        nbpResponse.getRates().forEach((currency, value) -> {
+
+            Rate rate = new Rate(
+                CurrencyCode.valueOf(currency),
+                value,
+                snapshot
+            );
+
+            snapshot.addRate(rate);
+        });
+
         
         RateSnapshot saved = snapshotRepository.save(snapshot);
         log.info("Saved snapshot with {} rates", saved.getRates().size());
