@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,21 +42,21 @@ public class RatesController {
         List<LatestRatesResponse.RateDto> filteredRates =
                 snapshot.getRates().stream()
                         .filter(rate -> symbolList.contains(rate.getCurrency()))
-                        .map(rate -> LatestRatesResponse.RateDto.builder()
-                                .symbol(rate.getCurrency().name())
-                                .rate(rate.getRate().toString())
-                                .build())
+                        .map(rate -> new LatestRatesResponse.RateDto(
+                                rate.getCurrency().name(),
+                                rate.getRate().toPlainString()
+                        ))
                         .collect(Collectors.toList());
 
         LatestRatesResponse response =
-                LatestRatesResponse.builder()
-                        .base(base.name())
-                        .asOf(snapshot.getEffectiveDate()
+                new LatestRatesResponse(
+                        base.name(),
+                        snapshot.getEffectiveDate()
                                 .atStartOfDay(ZoneId.systemDefault())
-                                .toInstant())
-                        .source(snapshot.getSource())
-                        .rates(filteredRates)
-                        .build();
+                                .toInstant(),
+                        snapshot.getSource(),
+                        filteredRates
+                );
 
         return ResponseEntity.ok(response);
     }
