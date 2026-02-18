@@ -20,12 +20,12 @@ public class DataInitializer implements CommandLineRunner {
     
     @Override
     public void run(String... args) {
-        LOGGER.info("Inicjalizacja danych - pobieranie z NBP...");
+        LOGGER.info("Initializing data from NBP...");
         try {
             var snapshot = rateService.fetchRatesFromNbp();
-            LOGGER.info("Dane zainicjalizowane: {} kursów z NBP", snapshot.getRates().size());
+            LOGGER.info("Initialized data: {} exchange rates from NBP", snapshot.getRates().size());
         } catch (Exception e) {
-            LOGGER.error("Błąd podczas inicjalizacji: {}", e.getMessage());
+            LOGGER.error("Error during initialization: {}", e.getMessage());
         }
     }
 }

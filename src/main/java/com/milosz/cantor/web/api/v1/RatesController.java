@@ -26,7 +26,7 @@ public class RatesController {
             @RequestParam(defaultValue = "PLN") CurrencyCode base,
             @RequestParam(required = false) List<CurrencyCode> symbols) {
 
-        RateSnapshot snapshot = rateService.getLatestSnapshot();
+        RateSnapshot snapshot = rateService.getLatestRates();
 
         List<CurrencyCode> symbolList;
 

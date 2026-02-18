@@ -84,4 +84,6 @@ public class RateSnapshot {
         rates.remove(rate);
         rate.setSnapshot(null);
     }
+
+    
 }
