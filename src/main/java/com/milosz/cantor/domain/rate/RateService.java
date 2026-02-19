@@ -3,6 +3,7 @@ package com.milosz.cantor.domain.rate;
 import com.milosz.cantor.infrastructure.nbp.NbpClient;
 import com.milosz.cantor.infrastructure.nbp.NbpResponse;
 import com.milosz.cantor.web.api.dto.ConversionResult;
+import com.milosz.cantor.web.api.dto.LatestRatesResponse;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,7 +11,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class RateService {
@@ -107,5 +111,26 @@ public class RateService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Brak kursu dla " + target))
                 .getRate();
+    }
+
+    public LatestRatesResponse getLatestRates(List<CurrencyCode> symbolList, CurrencyCode base) {
+    final RateSnapshot snapshot = snapshotRepository.findFirstByOrderByEffectiveDateDesc().orElse(null);
+        List<LatestRatesResponse.RateDto> filteredRates =
+                snapshot.getRates().stream()
+                        .filter(rate -> symbolList.contains(rate.getCurrency()))
+                        .map(rate -> new LatestRatesResponse.RateDto(
+                                rate.getCurrency().name(),
+                                rate.getRate().toPlainString()
+                        ))
+                        .collect(Collectors.toList());
+
+        return new LatestRatesResponse(
+                        base.name(),
+                        snapshot.getEffectiveDate()
+                                .atStartOfDay(ZoneId.systemDefault())
+                                .toInstant(),
+                        snapshot.getSource(),
+                        filteredRates
+                );
     }
 }
