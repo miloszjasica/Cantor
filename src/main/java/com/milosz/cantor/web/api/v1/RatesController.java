@@ -3,6 +3,8 @@ package com.milosz.cantor.web.api.v1;
 import com.milosz.cantor.domain.rate.CurrencyCode;
 import com.milosz.cantor.domain.rate.RateService;
 import com.milosz.cantor.domain.rate.RateSnapshot;
+import com.milosz.cantor.web.api.dto.ConversionResult;
+import com.milosz.cantor.web.api.dto.ConvertRequest;
 import com.milosz.cantor.web.api.dto.LatestRatesResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -62,4 +64,13 @@ public class RatesController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/convert")
+        public ConversionResult convert(@RequestBody ConvertRequest request) {
+        return rateService.convert(
+                request.fromCurrency(),
+                request.toCurrency(),
+                request.amount()
+        );
+        }
 }

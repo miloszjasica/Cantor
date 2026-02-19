@@ -2,9 +2,12 @@ package com.milosz.cantor.domain.rate;
 
 import com.milosz.cantor.infrastructure.nbp.NbpClient;
 import com.milosz.cantor.infrastructure.nbp.NbpResponse;
+import com.milosz.cantor.web.api.dto.ConversionResult;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
@@ -51,5 +54,58 @@ public class RateService {
 
 
         return snapshotRepository.save(snapshot);
+    }
+
+    @Transactional(readOnly = true)
+    public ConversionResult convert(
+            CurrencyCode from,
+            CurrencyCode to,
+            BigDecimal amount
+    ) {
+        RateSnapshot snapshot = getLatestRates();
+
+        if (snapshot == null) {
+            throw new IllegalStateException("Currency rates not available. Please try again later.");
+        }
+
+        if (from == to) {
+            return ConversionResult.sameCurrency(from, amount, snapshot);
+        }
+
+        BigDecimal rate = findRate(snapshot, from, to);
+
+        BigDecimal result;
+
+        if (from == CurrencyCode.PLN) {
+            result = amount.divide(rate, 6, RoundingMode.HALF_UP);
+        } else if (to == CurrencyCode.PLN) {
+            result = amount.multiply(rate);
+        } else {
+            throw new IllegalArgumentException("Conversion between non-PLN currencies is not supported.");
+        }
+
+        BigDecimal rounded = result.setScale(2, RoundingMode.HALF_UP);
+
+        return ConversionResult.of(
+                from,
+                to,
+                amount,
+                rounded,
+                rate,
+                snapshot
+        );
+    }
+
+    private BigDecimal findRate(RateSnapshot snapshot,
+                                CurrencyCode from,
+                                CurrencyCode to) {
+
+        CurrencyCode target = from == CurrencyCode.PLN ? to : from;
+
+        return snapshot.getRates().stream()
+                .filter(r -> r.getCurrency() == target)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Brak kursu dla " + target))
+                .getRate();
     }
 }

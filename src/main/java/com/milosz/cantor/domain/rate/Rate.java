@@ -52,4 +52,12 @@ public class Rate {
         return rate;
     }
 
+        public void setCurrency(CurrencyCode currency) {
+            this.currency = currency;
+        }
+
+        public void setRate(BigDecimal rate) {
+            this.rate = rate;
+        }  
+
 }
