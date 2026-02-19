@@ -5,6 +5,7 @@ import com.milosz.cantor.infrastructure.nbp.NbpResponse;
 import com.milosz.cantor.web.api.dto.ConversionResult;
 import com.milosz.cantor.web.api.dto.LatestRatesResponse;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -33,13 +34,13 @@ public class RateService {
 
     @Transactional
     public RateSnapshot fetchRatesFromNbp() {
-        LocalDate today = LocalDate.now();
-
-        if (snapshotRepository.existsByEffectiveDate(today)) {
-            return snapshotRepository.findFirstByOrderByEffectiveDateDesc().orElse(null);
-        }
 
         NbpResponse nbpResponse = nbpClient.fetchTodayRates();
+        LocalDate effectiveDate = nbpResponse.getEffectiveDate();
+
+        if (snapshotRepository.existsByEffectiveDate(effectiveDate)) {
+            return snapshotRepository.findFirstByOrderByEffectiveDateDesc().orElse(null);
+        }
 
         RateSnapshot snapshot = new RateSnapshot(
             CurrencyCode.PLN,
@@ -113,6 +114,7 @@ public class RateService {
                 .getRate();
     }
 
+    @Cacheable("latestRates")
     public LatestRatesResponse getLatestRates(List<CurrencyCode> symbolList, CurrencyCode base) {
     final RateSnapshot snapshot = snapshotRepository.findFirstByOrderByEffectiveDateDesc().orElse(null);
         List<LatestRatesResponse.RateDto> filteredRates =

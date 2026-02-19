@@ -1,4 +1,6 @@
 spring:
+  cache:
+    type: caffeine
   datasource:
     url: jdbc:postgresql://localhost:5432/cantor
     username: cantor

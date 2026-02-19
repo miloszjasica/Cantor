@@ -6,6 +6,9 @@ import com.milosz.cantor.domain.rate.RateSnapshot;
 import com.milosz.cantor.web.api.dto.ConversionResult;
 import com.milosz.cantor.web.api.dto.ConvertRequest;
 import com.milosz.cantor.web.api.dto.LatestRatesResponse;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,11 +69,11 @@ public class RatesController {
     }
 
     @PostMapping("/convert")
-        public ConversionResult convert(@RequestBody ConvertRequest request) {
+    public ConversionResult convert(@Valid @RequestBody ConvertRequest request) {
         return rateService.convert(
                 request.fromCurrency(),
                 request.toCurrency(),
                 request.amount()
         );
-        }
+    }
 }
