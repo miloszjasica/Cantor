@@ -110,7 +110,7 @@ public class RateService {
         return snapshot.getRates().stream()
                 .filter(r -> r.getCurrency() == target)
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Brak kursu dla " + target))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown rate for " + target))
                 .getRate();
     }
 
