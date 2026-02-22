@@ -8,6 +8,9 @@ import java.util.UUID;
 
 @Repository
 public interface RateSnapshotRepository extends JpaRepository<RateSnapshot, UUID> {
+
     Optional<RateSnapshot> findFirstByOrderByEffectiveDateDesc();
+
     boolean existsByEffectiveDate(LocalDate effectiveDate);
+
 }

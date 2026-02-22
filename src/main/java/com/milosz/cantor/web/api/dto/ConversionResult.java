@@ -50,5 +50,6 @@ public record ConversionResult(
                 new Rounding(2, RoundingMode.HALF_UP)
         );
     }
+
 }
 

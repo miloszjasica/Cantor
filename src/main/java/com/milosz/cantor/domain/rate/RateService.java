@@ -1,24 +1,20 @@
 package com.milosz.cantor.domain.rate;
 
 import com.milosz.cantor.infrastructure.nbp.NbpClient;
-import com.milosz.cantor.infrastructure.nbp.NbpResponse;
 import com.milosz.cantor.web.api.dto.ConversionResult;
+import com.milosz.cantor.web.api.dto.ConvertRequest;
 import com.milosz.cantor.web.api.dto.LatestRatesResponse;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
-public class RateService {
+class RateService implements IRateService {
 
     private final RateSnapshotRepository snapshotRepository;
     private final NbpClient nbpClient;
@@ -28,56 +24,26 @@ public class RateService {
         this.nbpClient = nbpClient;
     }
 
-    public RateSnapshot getLatestRates() {
-        return snapshotRepository.findFirstByOrderByEffectiveDateDesc().orElse(null);
-    }
-
-    @Transactional
-    public RateSnapshot fetchRatesFromNbp() {
-
-        NbpResponse nbpResponse = nbpClient.fetchTodayRates();
-        LocalDate effectiveDate = nbpResponse.getEffectiveDate();
-
-        if (snapshotRepository.existsByEffectiveDate(effectiveDate)) {
-            return snapshotRepository.findFirstByOrderByEffectiveDateDesc().orElse(null);
-        }
-
-        RateSnapshot snapshot = new RateSnapshot(
-            CurrencyCode.PLN,
-            "NBP",
-            Instant.now(),
-            nbpResponse.getEffectiveDate()
-        );
-    
-        Map<CurrencyCode, BigDecimal> rawRates = nbpResponse.getRates();
-
-
-        rawRates.forEach((currencyCode, value) -> {
-            Rate rate = new Rate(currencyCode, value, snapshot);
-            snapshot.addRate(rate);
-        });
-
-
-        return snapshotRepository.save(snapshot);
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<LatestRatesResponse> getLatestRatesResponse(CurrencyCode base, List<CurrencyCode> symbolList) {
+        return snapshotRepository.findFirstByOrderByEffectiveDateDesc()
+                .map(snapshot -> prepareLatestResponse(base, symbolList, snapshot));
     }
 
     @Transactional(readOnly = true)
-    public ConversionResult convert(
-            CurrencyCode from,
-            CurrencyCode to,
-            BigDecimal amount
-    ) {
-        RateSnapshot snapshot = getLatestRates();
+    @Override
+    public Optional<ConversionResult> convert(ConvertRequest request) {
+        return snapshotRepository.findFirstByOrderByEffectiveDateDesc()
+                .map(snapshot -> getConversionResult(request.fromCurrency(), request.toCurrency(), request.amount(), snapshot));
+    }
 
-        if (snapshot == null) {
-            throw new IllegalStateException("Currency rates not available. Please try again later.");
-        }
-
+    private static ConversionResult getConversionResult(CurrencyCode from, CurrencyCode to, BigDecimal amount, RateSnapshot snapshot) {
         if (from == to) {
             return ConversionResult.sameCurrency(from, amount, snapshot);
         }
 
-        BigDecimal rate = findRate(snapshot, from, to);
+        BigDecimal rate = snapshot.findRate(from, to);
 
         BigDecimal result;
 
@@ -101,38 +67,15 @@ public class RateService {
         );
     }
 
-    private BigDecimal findRate(RateSnapshot snapshot,
-                                CurrencyCode from,
-                                CurrencyCode to) {
-
-        CurrencyCode target = from == CurrencyCode.PLN ? to : from;
-
-        return snapshot.getRates().stream()
-                .filter(r -> r.getCurrency() == target)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown rate for " + target))
-                .getRate();
-    }
-
-    @Cacheable("latestRates")
-    public LatestRatesResponse getLatestRates(List<CurrencyCode> symbolList, CurrencyCode base) {
-    final RateSnapshot snapshot = snapshotRepository.findFirstByOrderByEffectiveDateDesc().orElse(null);
-        List<LatestRatesResponse.RateDto> filteredRates =
-                snapshot.getRates().stream()
-                        .filter(rate -> symbolList.contains(rate.getCurrency()))
-                        .map(rate -> new LatestRatesResponse.RateDto(
-                                rate.getCurrency().name(),
-                                rate.getRate().toPlainString()
-                        ))
-                        .collect(Collectors.toList());
-
+    private static LatestRatesResponse prepareLatestResponse(CurrencyCode base, List<CurrencyCode> symbolList, RateSnapshot snapshot) {
+        List<LatestRatesResponse.RateDto> filteredRates = snapshot.getLatest(symbolList);
         return new LatestRatesResponse(
-                        base.name(),
-                        snapshot.getEffectiveDate()
-                                .atStartOfDay(ZoneId.systemDefault())
-                                .toInstant(),
-                        snapshot.getSource(),
-                        filteredRates
-                );
+                base.name(),
+                snapshot.getEffectiveDate()
+                        .atStartOfDay(ZoneId.systemDefault())
+                        .toInstant(),
+                snapshot.getSource(),
+                filteredRates
+        );
     }
 }

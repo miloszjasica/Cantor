@@ -1,11 +1,15 @@
 package com.milosz.cantor.domain.rate;
 
+import com.milosz.cantor.web.api.dto.LatestRatesResponse;
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "rate_snapshots")
@@ -83,6 +87,25 @@ public class RateSnapshot {
     public void removeRate(Rate rate) {
         rates.remove(rate);
         rate.setSnapshot(null);
+    }
+
+    public List<LatestRatesResponse.RateDto> getLatest(List<CurrencyCode> symbolList) {
+        return rates.stream()
+                .filter(rate -> symbolList.contains(rate.getCurrency()))
+                .map(rate -> new LatestRatesResponse.RateDto(
+                        rate.getCurrency().name(),
+                        rate.getRate().toPlainString()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public BigDecimal findRate(CurrencyCode from, CurrencyCode to) {
+        CurrencyCode target = from == CurrencyCode.PLN ? to : from;
+        return rates.stream()
+                .filter(r -> r.getCurrency() == target)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown rate for " + target))
+                .getRate();
     }
 
     
