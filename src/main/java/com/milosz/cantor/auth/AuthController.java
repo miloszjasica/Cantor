@@ -1,5 +1,7 @@
 package com.milosz.cantor.auth;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,9 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+        this.jwtService = authService.jwtService;
+        this.userRepository = authService.userRepository;
     }
 
     @PostMapping("/register")
@@ -26,7 +32,21 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshResponse> refresh(@io.swagger.v3.oas.annotations.parameters.RequestBody RefreshRequest request) {
-        return ResponseEntity.ok(authService.refreshToken(request));
+    public ResponseEntity<LoginResponse> refreshToken(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refreshToken");
+        if (refreshToken == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String email = jwtService.extractEmail(refreshToken);
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!jwtService.isTokenValid(refreshToken, user)) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String newAccessToken = jwtService.generateToken(user.getEmail());
+        return ResponseEntity.ok(new LoginResponse(newAccessToken, null, "Bearer", 900));
     }
 }

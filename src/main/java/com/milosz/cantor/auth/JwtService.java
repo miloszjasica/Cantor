@@ -36,5 +36,20 @@ public class JwtService {
                 .getBody()
                 .getSubject();
         }
+
+        public boolean isTokenValid(String token, User user) {
+            String email = extractEmail(token);
+            return email.equals(user.getEmail()) && !isTokenExpired(token);
+        }
+
+        private boolean isTokenExpired(String token) {
+            Date expiration = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
+            return expiration.before(new Date());
+        }
     
 }
