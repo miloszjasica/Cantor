@@ -6,13 +6,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.milosz.cantor.web.api.dto.AuthResponse;
-import com.milosz.cantor.web.api.dto.LoginRequest;
-import com.milosz.cantor.web.api.dto.LoginResponse;
-import com.milosz.cantor.web.api.dto.RefreshRequest;
-import com.milosz.cantor.web.api.dto.RefreshResponse;
-import com.milosz.cantor.web.api.dto.RegisterRequest;
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

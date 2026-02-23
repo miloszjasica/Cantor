@@ -3,16 +3,6 @@ package com.milosz.cantor.auth;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.milosz.cantor.security.JwtService;
-import com.milosz.cantor.user.User;
-import com.milosz.cantor.user.UserRepository;
-import com.milosz.cantor.web.api.dto.AuthResponse;
-import com.milosz.cantor.web.api.dto.LoginRequest;
-import com.milosz.cantor.web.api.dto.LoginResponse;
-import com.milosz.cantor.web.api.dto.RefreshRequest;
-import com.milosz.cantor.web.api.dto.RefreshResponse;
-import com.milosz.cantor.web.api.dto.RegisterRequest;
-
 @Service
 public class AuthService {
 
