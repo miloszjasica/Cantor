@@ -1,6 +1,6 @@
 package com.milosz.cantor.auth;
 
-public class RefreshResponse {
+class RefreshResponse {
     
     private String accessToken;
     private String tokenType;

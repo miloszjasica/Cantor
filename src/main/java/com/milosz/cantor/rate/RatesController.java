@@ -14,7 +14,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/v1/rates")
 @SecurityRequirement(name = "bearerAuth")
-public class RatesController {
+class RatesController {
 
     private final IRateService rateService;
 

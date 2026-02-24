@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "rate_snapshots")
-public class RateSnapshot {
+class RateSnapshotEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,12 +36,12 @@ public class RateSnapshot {
             fetch = FetchType.EAGER,
             orphanRemoval = true
     )
-    private List<Rate> rates = new ArrayList<>();
+    private List<RateEntity> rateEntities = new ArrayList<>();
 
-    protected RateSnapshot() {
+    public RateSnapshotEntity() {
     }
 
-    public RateSnapshot(
+    public RateSnapshotEntity(
             CurrencyCode baseCurrency,
             String source,
             Instant fetchedAt,
@@ -73,38 +73,37 @@ public class RateSnapshot {
         return effectiveDate;
     }
 
-    public List<Rate> getRates() {
-        return rates;
+    public List<RateEntity> getRates() {
+        return rateEntities;
     }
 
-    public void addRate(Rate rate) {
-        rates.add(rate);
-        rate.setSnapshot(this);
+    public void addRate(RateEntity rateEntity) {
+        rateEntities.add(rateEntity);
+        rateEntity.setSnapshot(this);
     }
 
-    public void removeRate(Rate rate) {
-        rates.remove(rate);
-        rate.setSnapshot(null);
+    public void removeRate(RateEntity rateEntity) {
+        rateEntities.remove(rateEntity);
+        rateEntity.setSnapshot(null);
     }
 
     public List<LatestRatesResponse.RateDto> getLatest(List<CurrencyCode> symbolList) {
-        return rates.stream()
-                .filter(rate -> symbolList.contains(rate.getCurrency()))
-                .map(rate -> new LatestRatesResponse.RateDto(
-                        rate.getCurrency().name(),
-                        rate.getRate().toPlainString()
+        return rateEntities.stream()
+                .filter(rateEntity -> symbolList.contains(rateEntity.getCurrency()))
+                .map(rateEntity -> new LatestRatesResponse.RateDto(
+                        rateEntity.getCurrency().name(),
+                        rateEntity.getRate().toPlainString()
                 ))
                 .collect(Collectors.toList());
     }
 
     public BigDecimal findRate(CurrencyCode from, CurrencyCode to) {
         CurrencyCode target = from == CurrencyCode.PLN ? to : from;
-        return rates.stream()
+        return rateEntities.stream()
                 .filter(r -> r.getCurrency() == target)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown rate for " + target))
                 .getRate();
     }
 
-    
 }

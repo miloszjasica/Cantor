@@ -1,6 +1,6 @@
 package com.milosz.cantor.auth;
 
-public class RefreshRequest {
+class RefreshRequest {
     
     private String refreshToken;
 

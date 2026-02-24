@@ -10,7 +10,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Service
-public class JwtService {
+class JwtService {
 
     private final String SECRET = "supersecretkeythatshouldbereplacedinproduction";
     private final long EXPIRATION_TIME = 86400000 / 24; // 1 hour

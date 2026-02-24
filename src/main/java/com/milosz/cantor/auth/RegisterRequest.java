@@ -1,6 +1,6 @@
 package com.milosz.cantor.auth;
 
-public class RegisterRequest {
+class RegisterRequest {
 
     private String email;
     private String password;

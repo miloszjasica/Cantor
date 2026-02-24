@@ -1,6 +1,6 @@
 package com.milosz.cantor.auth;
 
-public class AuthResponse {
+class AuthResponse {
 
     private String userId;
     private String email;

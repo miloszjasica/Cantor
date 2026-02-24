@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 
-public record ConversionResult(
+record ConversionResult(
         Money from,
         Money to,
         BigDecimal rate,
@@ -19,7 +19,7 @@ public record ConversionResult(
             BigDecimal fromAmount,
             BigDecimal toAmount,
             BigDecimal rate,
-            RateSnapshot snapshot
+            RateSnapshotEntity snapshot
     ) {
         return new ConversionResult(
                 new Money(from, fromAmount.setScale(2)),
@@ -34,7 +34,7 @@ public record ConversionResult(
     public static ConversionResult sameCurrency(
             CurrencyCode currency,
             BigDecimal amount,
-            RateSnapshot snapshot
+            RateSnapshotEntity snapshot
     ) {
         return new ConversionResult(
                 new Money(currency, amount.setScale(2)),

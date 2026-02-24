@@ -6,9 +6,9 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 @Repository
-public interface RateSnapshotRepository extends JpaRepository<RateSnapshot, Long> {
+interface RateSnapshotRepository extends JpaRepository<RateSnapshotEntity, Long> {
 
-    Optional<RateSnapshot> findFirstByOrderByEffectiveDateDesc();
+    Optional<RateSnapshotEntity> findFirstByOrderByEffectiveDateDesc();
 
     boolean existsByEffectiveDate(LocalDate effectiveDate);
 

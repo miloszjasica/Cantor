@@ -1,6 +1,6 @@
 package com.milosz.cantor.auth;
 
-public class LoginResponse {
+class LoginResponse {
 
     private String accessToken;
     private String refreshToken;

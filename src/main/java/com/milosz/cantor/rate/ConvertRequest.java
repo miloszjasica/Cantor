@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
-public record ConvertRequest(
+record ConvertRequest(
         @NotNull
         CurrencyCode fromCurrency,
         

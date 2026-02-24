@@ -35,7 +35,7 @@ class RateService implements IRateService {
                 .map(snapshot -> getConversionResult(request.fromCurrency(), request.toCurrency(), request.amount(), snapshot));
     }
 
-    private static ConversionResult getConversionResult(CurrencyCode from, CurrencyCode to, BigDecimal amount, RateSnapshot snapshot) {
+    private static ConversionResult getConversionResult(CurrencyCode from, CurrencyCode to, BigDecimal amount, RateSnapshotEntity snapshot) {
         if (from == to) {
             return ConversionResult.sameCurrency(from, amount, snapshot);
         }
@@ -64,7 +64,7 @@ class RateService implements IRateService {
         );
     }
 
-    private static LatestRatesResponse prepareLatestResponse(CurrencyCode base, List<CurrencyCode> symbolList, RateSnapshot snapshot) {
+    private static LatestRatesResponse prepareLatestResponse(CurrencyCode base, List<CurrencyCode> symbolList, RateSnapshotEntity snapshot) {
         List<LatestRatesResponse.RateDto> filteredRates = snapshot.getLatest(symbolList);
         return new LatestRatesResponse(
                 base.name(),
