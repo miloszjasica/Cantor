@@ -1,9 +1,12 @@
 package com.milosz.cantor.rate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,6 +81,12 @@ public class RateServiceTest {
 
         when(snapshot.findRate(CurrencyCode.PLN, CurrencyCode.USD))
                 .thenReturn(java.math.BigDecimal.valueOf(4));
+        
+        when(snapshot.getFetchedAt())
+        .thenReturn(java.time.Instant.now());
+
+        when(snapshot.getSource())
+                .thenReturn("NBP");
 
         // when
         Optional<ConversionResult> result =
@@ -91,7 +100,10 @@ public class RateServiceTest {
 
         // then
         assertTrue(result.isPresent());
-        assertTrue(result.get().to().amount().compareTo(java.math.BigDecimal.valueOf(2)) == 0);
+        assertEquals(
+                BigDecimal.valueOf(2),
+                result.get().to().amount()
+        );
         
      }
 
@@ -106,6 +118,12 @@ public class RateServiceTest {
         when(snapshot.findRate(CurrencyCode.USD, CurrencyCode.PLN))
                 .thenReturn(java.math.BigDecimal.valueOf(4));
 
+        when(snapshot.getFetchedAt())
+        .thenReturn(java.time.Instant.now());
+
+        when(snapshot.getSource())
+                .thenReturn("NBP");
+
         // when
         Optional<ConversionResult> result =
                 rateService.convert(
@@ -118,7 +136,10 @@ public class RateServiceTest {
 
         // then
         assertTrue(result.isPresent());
-        assertTrue(result.get().to().amount().compareTo(java.math.BigDecimal.valueOf(32)) == 0);
+        assertEquals(
+                BigDecimal.valueOf(32),
+                result.get().to().amount()
+        );
      }
 
      @Test
@@ -128,6 +149,12 @@ public class RateServiceTest {
         
         when(snapshotRepository.findFirstByOrderByEffectiveDateDesc())
                 .thenReturn(Optional.of(snapshot));
+
+        when(snapshot.getFetchedAt())
+        .thenReturn(java.time.Instant.now());
+
+        when(snapshot.getSource())
+                .thenReturn("NBP");
 
         // when
         Optional<ConversionResult> result =
@@ -141,7 +168,38 @@ public class RateServiceTest {
         
         // then
         assertTrue(result.isPresent());
-        assertTrue(result.get().to().amount().compareTo(java.math.BigDecimal.valueOf(8)) == 0);
+        assertEquals(
+                BigDecimal.valueOf(8),
+                result.get().to().amount()
+        );
      }
+
+        @Test
+        void shouldThrowWhenConvertingBetweenNonPlnCurrencies() {
+        RateSnapshotEntity snapshot = mock(RateSnapshotEntity.class);
+
+        when(snapshotRepository.findFirstByOrderByEffectiveDateDesc())
+                .thenReturn(Optional.of(snapshot));
+
+        when(snapshot.findRate(CurrencyCode.USD, CurrencyCode.EUR))
+                .thenReturn(java.math.BigDecimal.valueOf(1.2));
+
+        when(snapshot.getFetchedAt())
+        .thenReturn(java.time.Instant.now());
+
+        when(snapshot.getSource())
+                .thenReturn("NBP");
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> rateService.convert(
+                        new ConvertRequest(
+                                CurrencyCode.USD,
+                                CurrencyCode.EUR,
+                                java.math.BigDecimal.TEN
+                        )
+                )
+        );
+        }
 
 }
