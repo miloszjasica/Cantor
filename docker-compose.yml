@@ -24,6 +24,20 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cantor
       SPRING_DATASOURCE_USERNAME: cantor
       SPRING_DATASOURCE_PASSWORD: cantor
+  
+  test:
+    image: maven:3.9.6-eclipse-temurin-17
+    working_dir: /app
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - ~/.m2:/root/.m2
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/cantor
+      SPRING_DATASOURCE_USERNAME: cantor
+      SPRING_DATASOURCE_PASSWORD: cantor
+    command: mvn test
 
 volumes:
   postgres_data:

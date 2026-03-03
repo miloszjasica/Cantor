@@ -10,5 +10,4 @@ class CantorApplicationTests {
 	void contextLoads() {
 	}
 
-
 }

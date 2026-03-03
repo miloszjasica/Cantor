@@ -1,7 +1,5 @@
 package com.milosz.cantor.rate;
 
-import com.milosz.cantor.nbp.NbpClient;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -14,11 +12,9 @@ import java.util.Optional;
 class RateService implements IRateService {
 
     private final RateSnapshotRepository snapshotRepository;
-    private final NbpClient nbpClient;
 
-    public RateService(RateSnapshotRepository snapshotRepository, NbpClient nbpClient) {
+    public RateService(RateSnapshotRepository snapshotRepository) {
         this.snapshotRepository = snapshotRepository;
-        this.nbpClient = nbpClient;
     }
 
     @Transactional(readOnly = true)

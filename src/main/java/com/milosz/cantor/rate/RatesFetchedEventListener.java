@@ -4,9 +4,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Map;
 
 @Component
 class RatesFetchedEventListener {
